@@ -1,0 +1,25 @@
+{
+    "name": "yd/ydredis",
+    "description": "redis连接库",
+    "keywords": ["redis"],
+    "homepage": "https://github.com/jingwu15/ydredis.git",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "jingwu",
+            "email": "jingwu@vip.163.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Yd\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=5.4.0",
+        "monolog/monolog": "1.22.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^5"
+    }
+}

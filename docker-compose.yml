@@ -1,0 +1,57 @@
+version: '3.7'
+volumes:
+    ydredis_data_6379:
+        name: ydredis_data_6379
+        driver: local
+    ydredis_data_6380:
+        name: ydredis_data_6380
+        driver: local
+    ydredis_data_6381:
+        name: ydredis_data_6381
+        driver: local
+services:
+  ydredis_redis_6379:
+    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    container_name: ydredis_redis_6379
+    volumes:
+      - ./redis/sentinel/:/etc/redis/
+      - ydredis_data_6379:/data
+    command: redis-server /etc/redis/redis_6379.conf
+    network_mode: "host"
+  ydredis_redis_6380:
+    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    container_name: ydredis_redis_6380
+    volumes:
+      - ./redis/sentinel/:/etc/redis
+      - ydredis_data_6380:/data
+    command: redis-server /etc/redis/redis_6380.conf
+    network_mode: "host"
+  ydredis_redis_6381:
+    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    container_name: ydredis_redis_6381
+    volumes:
+      - ./redis/sentinel/:/etc/redis
+      - ydredis_data_6381:/data
+    command: redis-server /etc/redis/redis_6381.conf
+    network_mode: "host"
+  ydredis_senti_26379:
+    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    container_name: ydredis_senti_26379
+    volumes:
+      - ./redis/sentinel/:/etc/redis
+    command: redis-sentinel /etc/redis/senti_26379.conf
+    network_mode: "host"
+  ydredis_senti_26380:
+    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    container_name: ydredis_senti_26380
+    volumes:
+      - ./redis/sentinel/:/etc/redis
+    command: redis-sentinel /etc/redis/senti_26380.conf
+    network_mode: "host"
+  ydredis_senti_26381:
+    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    container_name: ydredis_senti_26381
+    volumes:
+      - ./redis/sentinel/:/etc/redis
+    command: redis-sentinel /etc/redis/senti_26381.conf
+    network_mode: "host"
