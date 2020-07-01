@@ -1,5 +1,5 @@
 {
-    "name": "ydredis",
+    "name": "ydredis/ydredis",
     "description": "redis连接库",
     "keywords": ["redis"],
     "homepage": "https://github.com/jingwu15/ydredis.git",
