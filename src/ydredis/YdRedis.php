@@ -152,27 +152,34 @@ class YdRedis {
             }
             $this->_instance = $redis;
         }
+        if($this->_instance) {
+            try {
+                $result = $this->_instance->auth($this->_cfg['password']);
+            } catch(\Exception $e) {
+                $msg = "auth[{$this->_cfg['password']}] 失败！".$e->getMessage();
+                $this->_error($msg);
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("YdRedis {$msg}");
+                throw new YdRedisException($msg);
+            }
+            try {
+                if(isset($this->_cfg['db'])) $result = $redis->select($this->_cfg['db']);
+            } catch(\Exception $e) {
+                $msg = "select[{$this->_cfg['db']}] 失败！".$e->getMessage();
+                $this->_error($msg);
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("YdRedis {$msg}");
+                throw new YdRedisException($msg);
+            }
+        }
         if(isset($this->_cfg['cluster_address'])) {
-            //var_dump($this->_cfg);
-            //var_dump($this->_cfg['clusters']);
-            $redis = new \RedisCluster(NUll,$this->_cfg['clusters']);
+            try {
+                $redis = new \RedisCluster(NUll,$this->_cfg['clusters'], 1.5, 1.5, true, $this->_cfg['password']);
+            } catch(\Exception $e) {
+                $msg = "connect cluster[{$this->_cfg['cluster_address']}] 失败！".$e->getMessage();
+                $this->_error($msg);
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("YdRedis {$msg}");
+                throw new YdRedisException($msg);
+            }
             $this->_instance = $redis;
-        }
-        try {
-            $result = $this->_instance->auth($this->_cfg['password']);
-        } catch(\Exception $e) {
-            $msg = "auth[{$this->_cfg['password']}] 失败！".$e->getMessage();
-            $this->_error($msg);
-            self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("YdRedis {$msg}");
-            throw new YdRedisException($msg);
-        }
-        try {
-            if(isset($this->_cfg['db'])) $result = $redis->select($this->_cfg['db']);
-        } catch(\Exception $e) {
-            $msg = "select[{$this->_cfg['db']}] 失败！".$e->getMessage();
-            $this->_error($msg);
-            self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("YdRedis {$msg}");
-            throw new YdRedisException($msg);
         }
         return true;
     }
