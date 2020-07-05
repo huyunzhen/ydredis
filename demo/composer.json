@@ -1,0 +1,26 @@
+{
+    "name": "yundun/api",
+    "description": "YunDun official site",
+    "homepage": "http://www.github.com/YunDun/yundun.cn",
+    "keywords": ["php", "phpframework", "ypf", "api", "beanstalk", "mongo", "redis", "memcache", "kafka"],
+    "type": "library",
+    "authors": [
+        {
+            "name": "jasong",
+            "email": "gaolu@yundun.cn",
+            "role": "Development"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "ydredis/ydredis": "0.1.0"
+    },
+    "require-dev": {
+    },
+    "minimum-stability": "dev",
+    "config": {
+        "process-timeout":      600,
+        "preferred-install":    "dist",
+        "github-protocols":     ["https"]
+    }
+}

@@ -1,0 +1,3 @@
+
+docker run -it -v master/:/etc/redis/ -v ydredis_data_6379:/data --network host docker.nodevops.cn/web/redis:6.0.4_yd
+
