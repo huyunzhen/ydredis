@@ -74,12 +74,6 @@ services:
     network_mode: "host"
 
 
-
-
-
-
-
-
   senti_26380:
     image: docker.nodevops.cn/web/redis:6.0.4_yd
     container_name: senti_26380
@@ -101,8 +95,6 @@ services:
       - ./sentinel/:/etc/redis
     command: redis-sentinel /etc/redis/senti_26382.conf
     network_mode: "host"
-
-
 
 
   cluster_redis_6390:

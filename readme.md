@@ -22,7 +22,7 @@ Add ``yd/ydredis`` as a dependency in your project's ``composer.json`` file (cha
 ```json
     {
         "require": {
-            "yd/ydredis": "0.1.0"
+            "yd/ydredis": "0.2.0"
         }
     }
 ```
@@ -69,42 +69,82 @@ db = 0
 cmdlog = off
 ```
 
+示例
 ```
 <?php
+require_once './vendor/autoload.php';
 
-require_once '../src/ydredis/YdRedis.php';
-require_once '../vendor/autoload.php';
+use \Yd\YdRedis;
 
 $logger = new \Monolog\Logger('ydredis');
 $logger->pushHandler(new \Monolog\Handler\StreamHandler('/tmp/ydredis.log', \Monolog\Logger::DEBUG));
 
-\Yd\YdRedis::loadConf('./redis.conf');
-//YdRedis::setCfgs(parse_ini_file($confFile, true));
-\Yd\YdRedis::setLogger($logger);
+//配置加载有两种方式：文件，变量
+//从文件中加载配置
+YdRedis::loadConf('./redis.conf');
+
+//从变量中加载配置
+//YdRedis::setCfgs(parse_ini_file('./redis.conf', true));
+
+//库中自带日志功能，如果需要指定日志文件，可以传指定的logger
+YdRedis::setLogger($logger);
 
 print("连接到master\n");
-$redis = \Yd\YdRedis::ins();
+$redis = YdRedis::ins();
 $result = $redis->set('a', 'jwtest'.date('Y-m-d H:i:s'));
 var_dump($result);
 var_dump($redis->get('a'));
 var_dump("lastError: ".$redis->lastError());
 print("\n\n");
+//重连
+$redis->reconn();
 
 print("连接到sentinel\n");
-$redisSenti = \Yd\YdRedis::ins('senti');
+$redisSenti = YdRedis::ins('senti');
 $result = $redisSenti->set('a', 'jwtest'.date('Y-m-d H:i:s'));
 var_dump($result);
 var_dump($redisSenti->get('a'));
 var_dump("lastError: ".$redisSenti->lastError());
 print("\n\n");
+//重连
+$redisSenti->reconn();
 
 print("连接到cluster\n");
-$redisCluster = \Yd\YdRedis::ins('cluster');
+$redisCluster = YdRedis::ins('cluster');
 $result = $redisCluster->set('a', 'jwtest'.date('Y-m-d H:i:s'));
 var_dump($result);
 var_dump($redisCluster->get('a'));
 var_dump("lastError: ".$redisCluster->lastError());
 print("\n\n");
-
+//重连
+$redisCluster->reconn();
 ?>
 ```
+
+日志示例
+```
+[2020-07-06 07:00:52] ydredis.ERROR: YdRedis connect 127.0.0.1:63790 失败！Connection refused [] []
+[2020-07-06 07:03:05] ydredis.INFO: YdRedis  set ["a","jwtest2020-07-06 07:03:05"] [] []
+[2020-07-06 07:03:05] ydredis.INFO: YdRedis  get ["a"] [] []
+[2020-07-06 07:03:05] ydredis.ERROR: YdRedis  sentinel[127.0.0.1:36380] 连接失败 Connection refused [] []
+[2020-07-06 07:03:05] ydredis.INFO: YdRedis  set ["a","jwtest2020-07-06 07:03:05"] [] []
+[2020-07-06 07:03:05] ydredis.INFO: YdRedis  get ["a"] [] []
+[2020-07-06 07:03:31] ydredis.ERROR: YdRedis sentinel[127.0.0.1:6380, 127.0.0.1:26381, 127.0.0.1:26382] get-master-addr-by-name 未找到可用的节点！ [] []
+[2020-07-06 07:03:31] ydredis.ERROR: YdRedis 未连接到redis！ [] []
+[2020-07-06 07:04:40] ydredis.INFO: YdRedis  set ["a","jwtest2020-07-06 07:04:40"] [] []
+[2020-07-06 07:04:40] ydredis.INFO: YdRedis  get ["a"] [] []
+[2020-07-06 07:05:31] ydredis.ERROR: YdRedis connect cluster[127.0.0.1:36390, 127.0.0.1:36391, 127.0.0.1:36392,  127.0.0.1:36393, 127.0.0.1:36394, 127.0.0.1:36395] 失败！Couldn't map cluster keyspace using any provided seed [] []
+[2020-07-06 07:06:06] ydredis.INFO: YdRedis  set ["a","jwtest2020-07-06 07:06:06"] [] []
+[2020-07-06 07:06:06] ydredis.INFO: YdRedis  get ["a"] [] []
+```
+
+测试Redis环境
+```
+##测试环境已经使用docker构建好，启动环境，执行下面的命令
+cd demo
+make start
+
+##停止环境
+make stop
+```
+
