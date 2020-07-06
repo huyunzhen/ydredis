@@ -1,8 +1,8 @@
 {
-    "name": "ydredis/ydredis",
-    "description": "redis连接库",
+    "name": "yd/ydredis",
+    "description": "Redis连接库",
     "keywords": ["redis"],
-    "homepage": "https://github.com/jingwu15/ydredis.git",
+    "homepage": "https://github.com/yundun-php/ydredis.git",
     "license": "MIT",
     "authors": [
         {
@@ -12,14 +12,13 @@
     ],
     "autoload": {
         "psr-4": {
-            "Yd\\": "src/"
+            "Yd\\YdRedis\\": "src/ydredis/"
         }
     },
     "require": {
         "php": ">=5.4.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^5",
-        "monolog/monolog": "1.22.0"
+        "phpunit/phpunit": "^5"
     }
 }
