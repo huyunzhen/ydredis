@@ -22,7 +22,7 @@ Add ``yd/ydredis`` as a dependency in your project's ``composer.json`` file (cha
 ```json
     {
         "require": {
-            "yd/beanstalk": "0.1.0"
+            "yd/ydredis": "0.1.0"
         }
     }
 ```
