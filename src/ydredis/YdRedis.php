@@ -36,7 +36,8 @@ class YdRedis {
         self::$cfgs =$cfgs;
     }
 
-    public function __construct($cfg) {
+    public function __construct($key, $cfg) {
+        $this->_insKey = $key;
         $this->_cfg = self::parseCfg($cfg);
     }
 
@@ -76,13 +77,13 @@ class YdRedis {
 
     public static function ins($key = 'default') {
         if(!isset(self::$cfgs[$key])) {
-            throw new YdRedisException("YdRedis {$key} 配置不存在！");
+            throw new YdRedisException(" {$key} 配置不存在！");
             return null;
         }
         if(!isset(self::$instances[$key])) {
             $cfg = self::$cfgs[$key];
             //连接Redis
-            self::$instances[$key] = new self($cfg);
+            self::$instances[$key] = new self($key, $cfg);
             self::$instances[$key]->connectAuto();
         }
         return self::$instances[$key];
@@ -101,7 +102,7 @@ class YdRedis {
                 } catch (\Exception $e) {       //异常，跳过
                     $msg = " sentinel[{$senti['host']}:{$senti['port']}] 连接失败 ".$e->getMessage();
                     $this->_error($msg);
-                    self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("YdRedis {$msg}");
+                    self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
                     continue;
                 }
                 if($result) $isConnect = true;
@@ -109,22 +110,22 @@ class YdRedis {
             if(!$isConnect) {
                 $msg = "sentinel[{$this->_cfg['sentinel_address']}] 连接失败！";
                 $this->_error($msg);
-                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("YdRedis {$msg}");
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
                 throw new YdRedisException($msg);
                 return null;
             }
             try {
-                $master = $redis->rawcommand('SENTINEL', 'get-master-addr-by-name', $this->_cfg['mastername']);
+                $master = $redis->rawcommand('SENTINEL', 'get-master-addr-by-name', $this->_cfg['sentinel_mastername']);
                 if(!$master) {
-                    $msg = "sentinel[{$this->_cfg['sentinel_address']}] get-master-addr-by-name 未找到可用的节点！";
+                    $msg = "sentinel[{$this->_cfg['sentinel_address']}] get-master-addr-by-name mastername[{$this->_cfg['sentinel_mastername']}]未找到可用的节点！";
                     $this->_error($msg);
-                    self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("YdRedis {$msg}");
+                    self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
                     return null;
                 }
             } catch (\Exception $e) {
                 $msg = "sentinel[{$this->_cfg['sentinel_address']}] get-master-addr-by-name 失败 ".$e->getMessage();
                 $this->_error($msg);
-                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("YdRedis {$msg}");
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
                 throw new YdRedisException($msg);
                 return null;
             }
@@ -133,7 +134,7 @@ class YdRedis {
             } catch (\Exception $e) {
                 $msg = "connect {$master[0]}:{$master[1]} 失败 ".$e->getMessage();
                 $this->_error($msg);
-                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("YdRedis {$msg}");
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
                 throw new YdRedisException($msg);
                 return null;
             }
@@ -146,7 +147,7 @@ class YdRedis {
             } catch(\RedisException $e) {
                 $msg = "connect {$this->_cfg['host']}:{$this->_cfg['port']} 失败！".$e->getMessage();
                 $this->_error($msg);
-                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("YdRedis {$msg}");
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
                 throw new YdRedisException($msg);
                 return null;
             }
@@ -158,7 +159,7 @@ class YdRedis {
             } catch(\Exception $e) {
                 $msg = "auth[{$this->_cfg['password']}] 失败！".$e->getMessage();
                 $this->_error($msg);
-                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("YdRedis {$msg}");
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
                 throw new YdRedisException($msg);
             }
             try {
@@ -166,7 +167,7 @@ class YdRedis {
             } catch(\Exception $e) {
                 $msg = "select[{$this->_cfg['db']}] 失败！".$e->getMessage();
                 $this->_error($msg);
-                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("YdRedis {$msg}");
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
                 throw new YdRedisException($msg);
             }
         }
@@ -176,7 +177,7 @@ class YdRedis {
             } catch(\Exception $e) {
                 $msg = "connect cluster[{$this->_cfg['cluster_address']}] 失败！".$e->getMessage();
                 $this->_error($msg);
-                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("YdRedis {$msg}");
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
                 throw new YdRedisException($msg);
             }
             $this->_instance = $redis;
@@ -195,20 +196,20 @@ class YdRedis {
         if($this->_instance == null) {
             $msg = "未连接到redis！";
             $this->_error($msg);
-            self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("YdRedis {$msg}");
+            self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
             throw new YdRedisException($msg);
             return null;
         }
         if(method_exists($this->_instance, $name)) {
             if(self::$logger && $this->_cfg['cmdlog']) {
-                $log = "YdRedis {$this->_insKey} {$name} ".json_encode($params, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                $log = "{$this->_insKey} {$name} ".json_encode($params, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 self::$logger->info($log);
             }
             return call_user_func_array([$this->_instance, $name], $params);
         } else {
             $msg = "没有找到方法 {$name}！";
             $this->_error($msg);
-            self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("YdRedis {$msg}");
+            self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
             throw new YdRedisException($msg);
             return null;
         }

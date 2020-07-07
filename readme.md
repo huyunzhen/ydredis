@@ -14,7 +14,7 @@ YdRedis, redis扩展的二次封装, 版权所有 2018- 菁武.
 
 Versions & Requirements
 -----------------------
-0.1.0, PHP >=5.4.0
+0.3.0, PHP >=5.4.0
 
 Usage
 -----
@@ -22,51 +22,58 @@ Add ``yd/ydredis`` as a dependency in your project's ``composer.json`` file (cha
 ```json
     {
         "require": {
-            "yd/ydredis": "0.2.0"
+            "yd/ydredis": "0.3.0"
         }
     }
 ```
 
 配置 redis.conf
 ```
-;;[demo]
-;;;; [可选]redis节点连接地址, 格式：<host>:<port>, 不支持多地址
-;;address = 172.16.100.26:6379
-;;;; [可选]redis sentinel节点连接地址, 格式：<host>:<port>, 多以逗号(,)分隔
-;;sentinel_mastername = mymaster
-;;sentinel_address = 172.16.100.26:26379, 172.16.100.26:26380
-;;;; [可选]redis cluster连接地址, 格式：<host>:<port>, 多以逗号(,)分隔
-;;cluster_address = 172.16.100.26:6379, 172.16.100.26:6380
-;;;; [必选] redis密码
-;;password = pi2paUAEDrTwfD9MzDnkTGDIm-QB0FLH
-;;;; [必选] redis连接超时设置
-;;timeout = 0
-;;;; [可选] redis连接的db, 最好设置，每个db一个连接, cluster不需要此项
-;;db = 0
-;;;; [可选], 值on/off，默认off，执行命令写入日志
-;;cmdlog = off
+;[demo]
+;; [可选] redis连接的db, 最好设置，每个db一个连接, cluster不需要此项
+;db       = 0
+;; [可选], 值on/off，默认off，执行命令写入日志
+;cmdlog   = off
+;; [必选] redis连接超时设置
+;timeout  = 0
+;; [可选] redis密码，不配置内不验证
+;password = pi2paUAEDrTwfD9MzDnkTGDIm-QB0FLH
+
+;; 单节点 redis 配置方式
+;; [address] redis节点连接地址, 格式：<host>:<port>, 不支持多地址
+;address  = 172.16.100.26:6379
+
+;; sentinel主从部署方式
+;; [sentinel_address] sentinel节点连接地址, 格式：<host>:<port>, 多以逗号(,)分隔
+;sentinel_address = 172.16.100.26:26379, 172.16.100.26:26380
+;; [sentinel_mastername] sentinel主节点的名字
+;sentinel_mastername = mymaster
+
+;; cluster集熟部署
+;; [cluster_address] cluster连接地址, 格式：<host>:<port>, 多以逗号(,)分隔
+;cluster_address = 172.16.100.26:6379, 172.16.100.26:6380
 
 [default]
-address = 127.0.0.1:6379
+db       = 0
+cmdlog   = on
+timeout  = 0
 password = redisadmin
-timeout = 0
-db = 0
-cmdlog = on
+address  = 127.0.0.1:6379
 
 [senti]
-mastername = mymaster
-sentinel_address = 127.0.0.1:26380, 127.0.0.1:26381, 127.0.0.1:26382
+db       = 0
+cmdlog   = off
+timeout  = 0
 password = redisadmin
-timeout = 0
-db = 0
-cmdlog = off
+sentinel_address = 127.0.0.1:26380, 127.0.0.1:26381, 127.0.0.1:26382
+sentinel_mastername = mymaster
 
 [cluster]
-cluster_address = 127.0.0.1:6390, 127.0.0.1:6391, 127.0.0.1:6392,  127.0.0.1:6393, 127.0.0.1:6394, 127.0.0.1:6395
+db       = 0
+timeout  = 0
+cmdlog   = off
 password = redisadmin
-timeout = 0
-db = 0
-cmdlog = off
+cluster_address = 127.0.0.1:6390, 127.0.0.1:6391, 127.0.0.1:6392,  127.0.0.1:6393, 127.0.0.1:6394, 127.0.0.1:6395
 ```
 
 示例
@@ -123,19 +130,26 @@ $redisCluster->reconn();
 
 日志示例
 ```
-[2020-07-06 07:00:52] ydredis.ERROR: YdRedis connect 127.0.0.1:63790 失败！Connection refused [] []
-[2020-07-06 07:03:05] ydredis.INFO: YdRedis  set ["a","jwtest2020-07-06 07:03:05"] [] []
-[2020-07-06 07:03:05] ydredis.INFO: YdRedis  get ["a"] [] []
-[2020-07-06 07:03:05] ydredis.ERROR: YdRedis  sentinel[127.0.0.1:36380] 连接失败 Connection refused [] []
-[2020-07-06 07:03:05] ydredis.INFO: YdRedis  set ["a","jwtest2020-07-06 07:03:05"] [] []
-[2020-07-06 07:03:05] ydredis.INFO: YdRedis  get ["a"] [] []
-[2020-07-06 07:03:31] ydredis.ERROR: YdRedis sentinel[127.0.0.1:6380, 127.0.0.1:26381, 127.0.0.1:26382] get-master-addr-by-name 未找到可用的节点！ [] []
-[2020-07-06 07:03:31] ydredis.ERROR: YdRedis 未连接到redis！ [] []
-[2020-07-06 07:04:40] ydredis.INFO: YdRedis  set ["a","jwtest2020-07-06 07:04:40"] [] []
-[2020-07-06 07:04:40] ydredis.INFO: YdRedis  get ["a"] [] []
-[2020-07-06 07:05:31] ydredis.ERROR: YdRedis connect cluster[127.0.0.1:36390, 127.0.0.1:36391, 127.0.0.1:36392,  127.0.0.1:36393, 127.0.0.1:36394, 127.0.0.1:36395] 失败！Couldn't map cluster keyspace using any provided seed [] []
-[2020-07-06 07:06:06] ydredis.INFO: YdRedis  set ["a","jwtest2020-07-06 07:06:06"] [] []
-[2020-07-06 07:06:06] ydredis.INFO: YdRedis  get ["a"] [] []
+[2020-07-07 17:15:32] ydredis.INFO: default set ["a","jwtest2020-07-07 17:15:32"] [] []
+[2020-07-07 17:15:32] ydredis.INFO: default get ["a"] [] []
+[2020-07-07 17:15:32] ydredis.ERROR: senti sentinel[127.0.0.1:26380, 127.0.0.1:26381, 127.0.0.1:26382] get-master-addr-by-name mastername[mymasters]未找到可用的节点！ [] []
+[2020-07-07 17:18:51] ydredis.INFO: default set ["a","jwtest2020-07-07 17:18:51"] [] []
+[2020-07-07 17:18:51] ydredis.INFO: default get ["a"] [] []
+[2020-07-07 17:18:51] ydredis.INFO: senti set ["a","jwtest2020-07-07 17:18:51"] [] []
+[2020-07-07 17:18:51] ydredis.INFO: senti get ["a"] [] []
+[2020-07-07 17:18:51] ydredis.INFO: cluster set ["a","jwtest2020-07-07 17:18:51"] [] []
+[2020-07-07 17:18:51] ydredis.INFO: cluster get ["a"] [] []
+[2020-07-07 17:19:17] ydredis.INFO: default set ["a","jwtest2020-07-07 17:19:17"] [] []
+[2020-07-07 17:19:17] ydredis.INFO: default get ["a"] [] []
+[2020-07-07 17:19:17] ydredis.INFO: senti set ["a","jwtest2020-07-07 17:19:17"] [] []
+[2020-07-07 17:19:17] ydredis.INFO: senti get ["a"] [] []
+[2020-07-07 17:19:17] ydredis.ERROR: cluster connect cluster[127.0.0.1:6390, 127.0.0.1:6391, 127.0.0.1:6392,  127.0.0.1:6393, 127.0.0.1:6394, 127.0.0.1:6395] 失败！Couldn't map cluster keyspace using any provided seed [] []
+[2020-07-07 17:19:44] ydredis.INFO: default set ["a","jwtest2020-07-07 17:19:44"] [] []
+[2020-07-07 17:19:44] ydredis.INFO: default get ["a"] [] []
+[2020-07-07 17:19:44] ydredis.INFO: senti set ["a","jwtest2020-07-07 17:19:44"] [] []
+[2020-07-07 17:19:44] ydredis.INFO: senti get ["a"] [] []
+[2020-07-07 17:19:44] ydredis.INFO: cluster set ["a","jwtest2020-07-07 17:19:44"] [] []
+[2020-07-07 17:19:44] ydredis.INFO: cluster get ["a"] [] []
 ```
 
 测试Redis环境
