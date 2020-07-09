@@ -23,7 +23,7 @@ Add ``yd/ydredis`` as a dependency in your project's ``composer.json`` file (cha
 ```json
     {
         "require": {
-            "yd/ydredis": "0.4.0"
+            "yd/ydredis": "0.5.0"
         }
     }
 ```
@@ -130,8 +130,10 @@ var_dump($redis->get('a'));
 //重连
 $redis->reconn();
 
-print("连接到sentinel, 使用实力对象日志\n");
-$redisSenti = YdRedis::ins('senti');
+print("连接到sentinel, 使用实例对象日志\n");
+//$redisSenti = YdRedis::ins('senti');
+$cfgs = parse_ini_file('./redis.conf', true);
+$redisSenti = new YdRedis('senti', $cfgs['senti']);
 $redisSenti->setLogger($loggerSentinel);
 $result = $redisSenti->set('a', 'jwtest'.date('Y-m-d H:i:s'));
 var_dump($result);
@@ -141,7 +143,7 @@ print("\n\n");
 //重连
 $redisSenti->reconn();
 
-print("连接到cluster, 使用实力对象日志\n");
+print("连接到cluster, 使用实例对象日志\n");
 $redisCluster = YdRedis::ins('cluster');
 $redisCluster->setLogger($loggerCluster);
 $result = $redisCluster->set('a', 'jwtest'.date('Y-m-d H:i:s'));

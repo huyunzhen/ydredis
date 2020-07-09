@@ -50,7 +50,7 @@ var_dump($redis->get('a'));
 //重连
 $redis->reconn();
 
-print("连接到sentinel, 使用实力对象日志\n");
+print("连接到sentinel, 使用实例对象日志\n");
 //$redisSenti = YdRedis::ins('senti');
 $cfgs = parse_ini_file('./redis.conf', true);
 $redisSenti = new YdRedis('senti', $cfgs['senti']);
@@ -63,7 +63,7 @@ print("\n\n");
 //重连
 $redisSenti->reconn();
 
-print("连接到cluster, 使用实力对象日志\n");
+print("连接到cluster, 使用实例对象日志\n");
 $redisCluster = YdRedis::ins('cluster');
 $redisCluster->setLogger($loggerCluster);
 $result = $redisCluster->set('a', 'jwtest'.date('Y-m-d H:i:s'));
