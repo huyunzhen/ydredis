@@ -1,4 +1,5 @@
 <?php
+require_once '../src/ydredis/YdRedis.php';
 require_once './vendor/autoload.php';
 
 use \Yd\YdRedis;
@@ -23,6 +24,7 @@ var_dump($result);
 var_dump($redis->get('a'));
 var_dump("lastError: ".$redis->lastError());
 print("\n\n");
+var_dump($redis->get('a'));
 //重连
 $redis->reconn();
 

@@ -16,9 +16,8 @@ class YdRedis {
     public static $logger = null;
     public static $instances = [];
 
-    public function setCfg($cfg, $insKey='default') {
-        $this->_insKey = $insKey;
-        $this->_cfg = self::parseCfg($cfg);
+    public static function jEncode($params = []) {
+        return json_encode($params, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 
     public static function setCfgs($cfgs = []) {
@@ -38,6 +37,10 @@ class YdRedis {
 
     public function __construct($key, $cfg) {
         $this->_insKey = $key;
+        $this->_cfg = self::parseCfg($cfg);
+    }
+
+    public function setCfg($cfg) {
         $this->_cfg = self::parseCfg($cfg);
     }
 
@@ -70,15 +73,22 @@ class YdRedis {
                 $cfg['clusters'][] = trim($row);
             }
         }
-        $cfg['db'] = isset($cfg['db']) ? intval($cfg['db']) : 0;
-        $cfg['cmdlog'] = isset($cfg['cmdlog']) && in_array($cfg['cmdlog'], ['on', 'off']) ? $cfg['cmdlog'] : 'off';
+        if(isset($cfg['db'])) $cfg['db'] = intval($cfg['db']);
+        $cfg['timeout'] = isset($cfg['timeout']) ? intval($cfg['timeout']) : 0;
+        $cfg['read_timeout'] = isset($cfg['read_timeout']) ? intval($cfg['read_timeout']) : 0;
+        if(isset($cfg['cmdlog'])) {
+            if($cfg['cmdlog'] != 1) {
+                $cfg['cmdlog'] = 0;
+            }
+        } else {
+            $cfg['cmdlog'] =  0;
+        }
         return $cfg;
     }
 
     public static function ins($key = 'default') {
         if(!isset(self::$cfgs[$key])) {
             throw new YdRedisException(" {$key} 配置不存在！");
-            return null;
         }
         if(!isset(self::$instances[$key])) {
             $cfg = self::$cfgs[$key];
@@ -91,7 +101,6 @@ class YdRedis {
 
     //连接重连，均调用此方法
     public function connectAuto() {
-        //var_dump($this->_cfg);
         if(isset($this->_cfg['sentis'])) {
             $redis = new \Redis();
             $isConnect = false;
@@ -108,76 +117,84 @@ class YdRedis {
                 if($result) $isConnect = true;
             }
             if(!$isConnect) {
-                $msg = "sentinel[{$this->_cfg['sentinel_address']}] 连接失败！";
+                $msg = "{$this->_insKey} sentinel[{$this->_cfg['sentinel_address']}] 连接失败！";
                 $this->_error($msg);
-                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$msg}");
                 throw new YdRedisException($msg);
-                return null;
             }
             try {
                 $master = $redis->rawcommand('SENTINEL', 'get-master-addr-by-name', $this->_cfg['sentinel_mastername']);
-                if(!$master) {
-                    $msg = "sentinel[{$this->_cfg['sentinel_address']}] get-master-addr-by-name mastername[{$this->_cfg['sentinel_mastername']}]未找到可用的节点！";
-                    $this->_error($msg);
-                    self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
-                    return null;
-                }
             } catch (\Exception $e) {
-                $msg = "sentinel[{$this->_cfg['sentinel_address']}] get-master-addr-by-name 失败 ".$e->getMessage();
+                $msg = "{$this->_insKey} sentinel[{$this->_cfg['sentinel_address']}] get-master-addr-by-name 失败 ".$e->getMessage();
                 $this->_error($msg);
-                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$msg}");
                 throw new YdRedisException($msg);
-                return null;
+            }
+            if(!$master) {
+                $msg = "{$this->_insKey} sentinel[{$this->_cfg['sentinel_address']}] get-master-addr-by-name mastername[{$this->_cfg['sentinel_mastername']}]未找到可用的节点！";
+                $this->_error($msg);
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$msg}");
+                throw new YdRedisException($msg);
             }
             try {
-                $result = $redis->connect($master[0], $master[1]);
+                //host: string. can be a host, or the path to a unix domain socket. Starting from version 5.0.0 it is possible to specify schema port: int, optional
+                //timeout: float, value in seconds (optional, default is 0 meaning unlimited)
+                //reserved: should be NULL if retry_interval is specified
+                //retry_interval: int, value in milliseconds (optional)
+                //read_timeout: float, value in seconds (optional, default is 0 meaning unlimited)
+                $result = $redis->connect($master[0], $master[1], $this->_cfg['timeout'], null, 100, $this->_cfg['read_timeout']);
             } catch (\Exception $e) {
-                $msg = "connect {$master[0]}:{$master[1]} 失败 ".$e->getMessage();
+                $msg = "{$this->_insKey} connect {$master[0]}:{$master[1]} 失败 ".$e->getMessage();
                 $this->_error($msg);
-                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$msg}");
                 throw new YdRedisException($msg);
-                return null;
             }
             $this->_instance = $redis;
         }
         if(isset($this->_cfg['address'])) {
             $redis = new \Redis();
             try {
-                $redis->connect($this->_cfg['host'], $this->_cfg['port'], 5, null, 100);
+                //host: string. can be a host, or the path to a unix domain socket. Starting from version 5.0.0 it is possible to specify schema port: int, optional
+                //timeout: float, value in seconds (optional, default is 0 meaning unlimited)
+                //reserved: should be NULL if retry_interval is specified
+                //retry_interval: int, value in milliseconds (optional)
+                //read_timeout: float, value in seconds (optional, default is 0 meaning unlimited)
+                $redis->connect($this->_cfg['host'], $this->_cfg['port'], $this->_cfg['timeout'], null, 100, $this->_cfg['read_timeout']);
             } catch(\RedisException $e) {
-                $msg = "connect {$this->_cfg['host']}:{$this->_cfg['port']} 失败！".$e->getMessage();
+                $msg = "{$this->_insKey} connect {$this->_cfg['host']}:{$this->_cfg['port']} 失败！".$e->getMessage();
                 $this->_error($msg);
-                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$msg}");
                 throw new YdRedisException($msg);
-                return null;
             }
             $this->_instance = $redis;
         }
         if($this->_instance) {
             try {
-                $result = $this->_instance->auth($this->_cfg['password']);
+                if(!empty($this->_cfg['password'])) {
+                    $result = $this->_instance->auth($this->_cfg['password']);
+                }
             } catch(\Exception $e) {
-                $msg = "auth[{$this->_cfg['password']}] 失败！".$e->getMessage();
+                $msg = "{$this->_insKey} auth[{$this->_cfg['password']}] 失败！".$e->getMessage();
                 $this->_error($msg);
-                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$msg}");
                 throw new YdRedisException($msg);
             }
             try {
                 if(isset($this->_cfg['db'])) $result = $redis->select($this->_cfg['db']);
             } catch(\Exception $e) {
-                $msg = "select[{$this->_cfg['db']}] 失败！".$e->getMessage();
+                $msg = "{$this->_insKey} select[{$this->_cfg['db']}] 失败！".$e->getMessage();
                 $this->_error($msg);
-                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$msg}");
                 throw new YdRedisException($msg);
             }
         }
         if(isset($this->_cfg['cluster_address'])) {
             try {
-                $redis = new \RedisCluster(NUll,$this->_cfg['clusters'], 1.5, 1.5, true, $this->_cfg['password']);
+                $redis = new \RedisCluster(NUll,$this->_cfg['clusters'], $this->_cfg['timeout'], $this->_cfg['read_timeout'], true, $this->_cfg['password']);
             } catch(\Exception $e) {
-                $msg = "connect cluster[{$this->_cfg['cluster_address']}] 失败！".$e->getMessage();
+                $msg = "{$this->_insKey} connect cluster[{$this->_cfg['cluster_address']}] 失败！".$e->getMessage();
                 $this->_error($msg);
-                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$msg}");
                 throw new YdRedisException($msg);
             }
             $this->_instance = $redis;
@@ -191,27 +208,31 @@ class YdRedis {
     }
 
     public function __call($name, $params) {
-        //记录日志RedisException: Redis server went away in xxxxxx
-
         if($this->_instance == null) {
-            $msg = "未连接到redis！";
+            $msg = "{$this->_insKey} 未连接到redis！";
             $this->_error($msg);
-            self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
+            self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$msg}");
             throw new YdRedisException($msg);
-            return null;
         }
         if(method_exists($this->_instance, $name)) {
-            if(self::$logger && $this->_cfg['cmdlog']) {
-                $log = "{$this->_insKey} {$name} ".json_encode($params, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                self::$logger->info($log);
+            try {
+                $result = call_user_func_array([$this->_instance, $name], $params);
+                if(self::$logger && $this->_cfg['cmdlog']) {
+                    $log = "{$this->_insKey} cmd: {$name} params: ".self::jEncode($params)." result: ".self::jEncode($result);
+                    self::$logger->info($log);
+                }
+                return $result;
+            } catch(\Exception $e) {
+                $msg = "{$this->_insKey} cmd: {$name} params: ".self::jEncode($params)." 执行失败 ".$e->getMessage();
+                $this->_error($msg);
+                self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$msg}");
+                throw new YdRedisException($msg);
             }
-            return call_user_func_array([$this->_instance, $name], $params);
         } else {
-            $msg = "没有找到方法 {$name}！";
+            $msg = "{$this->_insKey} 没有找到方法 {$name}！";
             $this->_error($msg);
-            self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$this->_insKey} {$msg}");
+            self::$logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : self::$logger->error("{$msg}");
             throw new YdRedisException($msg);
-            return null;
         }
     }
 
