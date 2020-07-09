@@ -39,6 +39,7 @@ class YdRedis {
     public function __construct($insKey, $cfg) {
         $this->_insKey = $insKey;
         $this->_cfg = self::parseCfg($cfg);
+        $this->connectAuto();
     }
 
     public function setCfg($cfg) {
@@ -109,7 +110,6 @@ class YdRedis {
             $cfg = self::$cfgs[$key];
             //连接Redis
             self::$instances[$key] = new self($key, $cfg);
-            self::$instances[$key]->connectAuto();
         }
         return self::$instances[$key];
     }

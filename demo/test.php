@@ -51,7 +51,9 @@ var_dump($redis->get('a'));
 $redis->reconn();
 
 print("连接到sentinel, 使用实力对象日志\n");
-$redisSenti = YdRedis::ins('senti');
+//$redisSenti = YdRedis::ins('senti');
+$cfgs = parse_ini_file('./redis.conf', true);
+$redisSenti = new YdRedis('senti', $cfgs['senti']);
 $redisSenti->setLogger($loggerSentinel);
 $result = $redisSenti->set('a', 'jwtest'.date('Y-m-d H:i:s'));
 var_dump($result);
