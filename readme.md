@@ -4,8 +4,9 @@ YdRedis
 说明
 --------
 本库是基于redis扩展，进行了业务使用上的封装
-1. 统一 单节点直接/sentinel/cluster 连接的配置
+1. 统一 单节点/sentinel/cluster 连接的配置
 2. 增加日志，如不配置则写到php的默认日志；也可以写到指定的日志文件。
+3. 每个redis可以指定自己的日志(setLogger)，也可以指定全局的日志(setDefaultLogger)
 
 Copyright & License
 -------------------
@@ -14,7 +15,7 @@ YdRedis, redis扩展的二次封装, 版权所有 2018- 菁武.
 
 Versions & Requirements
 -----------------------
-0.3.0, PHP >=5.4.0
+0.4.0, PHP >=5.4.0
 
 Usage
 -----
@@ -86,28 +87,52 @@ use \Yd\YdRedis;
 $logger = new \Monolog\Logger('ydredis');
 $logger->pushHandler(new \Monolog\Handler\StreamHandler('/tmp/ydredis.log', \Monolog\Logger::DEBUG));
 
+$loggerSentinel = new \Monolog\Logger('ydredis_sentinel');
+$loggerSentinel->pushHandler(new \Monolog\Handler\StreamHandler('/tmp/ydredis_sentinel.log', \Monolog\Logger::DEBUG));
+
+$loggerCluster = new \Monolog\Logger('ydredis_cluster');
+$loggerCluster->pushHandler(new \Monolog\Handler\StreamHandler('/tmp/ydredis_cluster.log', \Monolog\Logger::DEBUG));
+
 //配置加载有两种方式：文件，变量
-//从文件中加载配置
+//从文件中加载全局配置
 YdRedis::loadConf('./redis.conf');
 
-//从变量中加载配置
+//从变量中加载全局配置
 //YdRedis::setCfgs(parse_ini_file('./redis.conf', true));
 
-//库中自带日志功能，如果需要指定日志文件，可以传指定的logger
-YdRedis::setLogger($logger);
+//可以不使用全局配置，而单独创建实例对像
+////参数：
+//    $insKey: 此实例的唯一标识符，指 redis.conf 中的 [default]/[senti]/[cluster], 写日志时会用到此项
+//    $cfg：redis的配置
+//$cfg = [
+//    'db'       => 0,
+//    'cmdlog'   => 1,
+//    'timeout'  => 0,
+//    'password' => 'redisadmin',
+//    'address'  => '127.0.0.1:6379',
+//];
+//$ydredis = new YdRedis('default', $cfg);
 
-print("连接到master\n");
+//库中自带日志功能，如有需要，可以指定全局日志, 实例对象的日志
+//全局日志
+YdRedis::setDefaultLogger($logger);
+//实力对象日志
+//$ydredis->setLogger($logger);
+
+print("连接到master, 使用全局logger\n");
 $redis = YdRedis::ins();
 $result = $redis->set('a', 'jwtest'.date('Y-m-d H:i:s'));
 var_dump($result);
 var_dump($redis->get('a'));
 var_dump("lastError: ".$redis->lastError());
 print("\n\n");
+var_dump($redis->get('a'));
 //重连
 $redis->reconn();
 
-print("连接到sentinel\n");
+print("连接到sentinel, 使用实力对象日志\n");
 $redisSenti = YdRedis::ins('senti');
+$redisSenti->setLogger($loggerSentinel);
 $result = $redisSenti->set('a', 'jwtest'.date('Y-m-d H:i:s'));
 var_dump($result);
 var_dump($redisSenti->get('a'));
@@ -116,8 +141,9 @@ print("\n\n");
 //重连
 $redisSenti->reconn();
 
-print("连接到cluster\n");
+print("连接到cluster, 使用实力对象日志\n");
 $redisCluster = YdRedis::ins('cluster');
+$redisCluster->setLogger($loggerCluster);
 $result = $redisCluster->set('a', 'jwtest'.date('Y-m-d H:i:s'));
 var_dump($result);
 var_dump($redisCluster->get('a'));
