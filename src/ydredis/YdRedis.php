@@ -188,6 +188,12 @@ class YdRedis {
             try {
                 if(!empty($this->_cfg['password'])) {
                     $result = $this->_instance->auth($this->_cfg['password']);
+                    if($result === false) {
+                        $msg = "{$this->_insKey} fail cmd: auth params: {$this->_cfg['password']} result: ".self::jEncode($result)." Error: ".$this->_instance->getLastError();
+                        $this->_error($msg);
+                        $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+                        throw new YdRedisException($msg);
+                    }
                 }
             } catch(\Exception $e) {
                 $msg = "{$this->_insKey} auth[{$this->_cfg['password']}] 失败！".$e->getMessage();
@@ -196,7 +202,15 @@ class YdRedis {
                 throw new YdRedisException($msg);
             }
             try {
-                if(isset($this->_cfg['db'])) $result = $redis->select($this->_cfg['db']);
+                if(isset($this->_cfg['db'])) {
+                    $result = $this->_instance->select($this->_cfg['db']);
+                    if($result === false) {
+                        $msg = "{$this->_insKey} fail cmd: select params: {$this->_cfg['db']} result: ".self::jEncode($result)." Error: ".$this->_instance->getLastError();
+                        $this->_error($msg);
+                        $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+                        throw new YdRedisException($msg);
+                    }
+                }
             } catch(\Exception $e) {
                 $msg = "{$this->_insKey} select[{$this->_cfg['db']}] 失败！".$e->getMessage();
                 $this->_error($msg);
@@ -234,9 +248,18 @@ class YdRedis {
         if(method_exists($this->_instance, $name)) {
             try {
                 $result = call_user_func_array([$this->_instance, $name], $params);
-                if($logger && $this->_cfg['cmdlog']) {
-                    $log = "{$this->_insKey} cmd: {$name} params: ".self::jEncode($params)." result: ".self::jEncode($result);
-                    $logger->info($log);
+                $resultMsg = $result === false ? 'fail' : 'ok';
+                $lastError = $result === false ? ' Error: '.$this->_instance->getLastError() : '';
+                $msg = "{$this->_insKey} {$resultMsg} cmd: {$name} params: ".self::jEncode($params)." result: ".self::jEncode($result).$lastError;
+                if($this->_cfg['cmdlog'] && $result === false) {
+                    $this->_error($msg);
+                    $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+                } else if($this->_cfg['cmdlog'] && $result !== false) {
+                    if($logger != null) $logger->info("{$msg}");
+                } else if(!$this->_cfg['cmdlog'] && $result === false) {
+                    $this->_error($msg);
+                    $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+                } else {
                 }
                 return $result;
             } catch(\Exception $e) {
