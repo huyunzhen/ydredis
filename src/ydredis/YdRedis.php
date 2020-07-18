@@ -249,14 +249,15 @@ class YdRedis {
             try {
                 $result = call_user_func_array([$this->_instance, $name], $params);
                 $resultMsg = $result === false ? 'fail' : 'ok';
-                $lastError = $result === false ? ' Error: '.$this->_instance->getLastError() : '';
-                $msg = "{$this->_insKey} {$resultMsg} cmd: {$name} params: ".self::jEncode($params)." result: ".self::jEncode($result).$lastError;
-                if($this->_cfg['cmdlog'] && $result === false) {
+                $lastError = $this->_instance->getLastError();
+                var_dump($lastError);
+                $msg = "{$this->_insKey} {$resultMsg} cmd: {$name} params: ".self::jEncode($params)." result: ".self::jEncode($result).($lastError == null ? "" : " Error: {$lastError}");
+                if($this->_cfg['cmdlog'] && $lastError !== null) {
                     $this->_error($msg);
                     $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
-                } else if($this->_cfg['cmdlog'] && $result !== false) {
+                } else if($this->_cfg['cmdlog'] && $lastError === null) {
                     if($logger != null) $logger->info("{$msg}");
-                } else if(!$this->_cfg['cmdlog'] && $result === false) {
+                } else if(!$this->_cfg['cmdlog'] && $lastError !== null) {
                     $this->_error($msg);
                     $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
                 } else {

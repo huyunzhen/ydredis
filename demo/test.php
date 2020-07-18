@@ -47,6 +47,8 @@ var_dump($redis->get('a'));
 var_dump("lastError: ".$redis->lastError());
 print("\n\n");
 var_dump($redis->get('a'));
+//验证key a0不存在时的处理
+var_dump($redis->get('a0'));
 //重连
 $redis->reconn();
 
@@ -58,6 +60,8 @@ $redisSenti->setLogger($loggerSentinel);
 $result = $redisSenti->set('a', 'jwtest'.date('Y-m-d H:i:s'));
 var_dump($result);
 var_dump($redisSenti->get('a'));
+//验证key a0不存在时的处理
+var_dump($redisSenti->get('a0'));
 var_dump("lastError: ".$redisSenti->lastError());
 print("\n\n");
 //重连
@@ -69,6 +73,8 @@ $redisCluster->setLogger($loggerCluster);
 $result = $redisCluster->set('a', 'jwtest'.date('Y-m-d H:i:s'));
 var_dump($result);
 var_dump($redisCluster->get('a'));
+//验证key a0不存在时的处理
+var_dump($redisCluster->get('a0'));
 var_dump("lastError: ".$redisCluster->lastError());
 print("\n\n");
 //重连
