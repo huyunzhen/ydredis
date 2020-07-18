@@ -23,7 +23,7 @@ Add ``yd/ydredis`` as a dependency in your project's ``composer.json`` file (cha
 ```json
     {
         "require": {
-            "yd/ydredis": "0.6.0"
+            "yd/ydredis": "0.7.0"
         }
     }
 ```
