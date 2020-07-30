@@ -39,7 +39,7 @@ volumes:
 services:
   #单节点
   ydredis_redis_6379:
-    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    image: docker.nodevops.cn/web/redis:5_yd
     container_name: ydredis_redis_6379
     volumes:
       - ./master/:/etc/redis/
@@ -49,7 +49,7 @@ services:
 
   #sentinel
   senti_redis_6380:
-    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    image: docker.nodevops.cn/web/redis:5_yd
     container_name: senti_redis_6380
     volumes:
       - ./sentinel/:/etc/redis
@@ -57,7 +57,7 @@ services:
     command: redis-server /etc/redis/redis_6380.conf
     network_mode: "host"
   senti_redis_6381:
-    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    image: docker.nodevops.cn/web/redis:5_yd
     container_name: senti_redis_6381
     volumes:
       - ./sentinel/:/etc/redis
@@ -65,7 +65,7 @@ services:
     command: redis-server /etc/redis/redis_6381.conf
     network_mode: "host"
   senti_redis_6382:
-    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    image: docker.nodevops.cn/web/redis:5_yd
     container_name: senti_redis_6382
     volumes:
       - ./sentinel/:/etc/redis
@@ -75,21 +75,21 @@ services:
 
 
   senti_26380:
-    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    image: docker.nodevops.cn/web/redis:5_yd
     container_name: senti_26380
     volumes:
       - ./sentinel/:/etc/redis
     command: redis-sentinel /etc/redis/senti_26380.conf
     network_mode: "host"
   senti_26381:
-    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    image: docker.nodevops.cn/web/redis:5_yd
     container_name: senti_26381
     volumes:
       - ./sentinel/:/etc/redis
     command: redis-sentinel /etc/redis/senti_26381.conf
     network_mode: "host"
   senti_26382:
-    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    image: docker.nodevops.cn/web/redis:5_yd
     container_name: senti_26382
     volumes:
       - ./sentinel/:/etc/redis
@@ -98,7 +98,7 @@ services:
 
 
   cluster_redis_6390:
-    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    image: docker.nodevops.cn/web/redis:5_yd
     container_name: cluster_redis_6390
     volumes:
       - ./cluster/:/etc/redis/
@@ -106,7 +106,7 @@ services:
     command: redis-server /etc/redis/redis_6390.conf
     network_mode: "host"
   cluster_redis_6391:
-    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    image: docker.nodevops.cn/web/redis:5_yd
     container_name: cluster_redis_6391
     volumes:
       - ./cluster/:/etc/redis/
@@ -114,7 +114,7 @@ services:
     command: redis-server /etc/redis/redis_6391.conf
     network_mode: "host"
   cluster_redis_6392:
-    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    image: docker.nodevops.cn/web/redis:5_yd
     container_name: cluster_redis_6392
     volumes:
       - ./cluster/:/etc/redis/
@@ -122,7 +122,7 @@ services:
     command: redis-server /etc/redis/redis_6392.conf
     network_mode: "host"
   cluster_redis_6393:
-    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    image: docker.nodevops.cn/web/redis:5_yd
     container_name: cluster_redis_6393
     volumes:
       - ./cluster/:/etc/redis/
@@ -130,7 +130,7 @@ services:
     command: redis-server /etc/redis/redis_6393.conf
     network_mode: "host"
   cluster_redis_6394:
-    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    image: docker.nodevops.cn/web/redis:5_yd
     container_name: cluster_redis_6394
     volumes:
       - ./cluster/:/etc/redis/
@@ -138,7 +138,7 @@ services:
     command: redis-server /etc/redis/redis_6394.conf
     network_mode: "host"
   cluster_redis_6395:
-    image: docker.nodevops.cn/web/redis:6.0.4_yd
+    image: docker.nodevops.cn/web/redis:5_yd
     container_name: cluster_redis_6395
     volumes:
       - ./cluster/:/etc/redis/
