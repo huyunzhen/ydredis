@@ -66,6 +66,9 @@ var_dump("lastError: ".$redisSenti->lastError());
 print("\n\n");
 //重连
 $redisSenti->reconn();
+$result = $redisSenti->set('a', 'jwtest'.date('Y-m-d H:i:s'), 600);
+var_dump($result);
+print("sentinel reconn end\n\n");
 
 print("连接到cluster, 使用实例对象日志\n");
 $redisCluster = YdRedis::ins('cluster');

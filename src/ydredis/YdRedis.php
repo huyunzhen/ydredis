@@ -250,7 +250,6 @@ class YdRedis {
                 $result = call_user_func_array([$this->_instance, $name], $params);
                 $resultMsg = $result === false ? 'fail' : 'ok';
                 $lastError = $this->_instance->getLastError();
-                var_dump($lastError);
                 $msg = "{$this->_insKey} {$resultMsg} cmd: {$name} params: ".self::jEncode($params)." result: ".self::jEncode($result).($lastError == null ? "" : " Error: {$lastError}");
                 if($this->_cfg['cmdlog'] && $lastError !== null) {
                     $this->_error($msg);
