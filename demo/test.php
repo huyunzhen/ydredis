@@ -39,46 +39,103 @@ YdRedis::setDefaultLogger($logger);
 //实力对象日志
 //$ydredis->setLogger($logger);
 
+$testKey = 'redis_testkey';
+$testKeyNo = 'redis_testkey_no';
+$testValue = 'redis_test: '.date('Y-m-d H:i:s');
+
 print("连接到master, 使用全局日志\n");
 $redis = YdRedis::ins();
-$result = $redis->set('a', 'jwtest'.date('Y-m-d H:i:s'));
-var_dump($result);
-var_dump($redis->get('a'));
-var_dump("lastError: ".$redis->lastError());
-print("\n\n");
-var_dump($redis->get('a'));
+
+$result = $redis->set($testKey, $testValue);
+print_r("set {$testKey} {$testValue} ".($result ? "成功" : "失败")."\n");
+print_r("lastError: ".$redis->lastError()."\n\n");
+
+$result = $redis->get($testKey);
+print_r("get {$testKey} result: {$result}\n");
+print_r("lastError: ".$redis->lastError()."\n\n");
+
 //验证key a0不存在时的处理
-var_dump($redis->get('a0'));
+$result = $redis->get($testKeyNo);
+print_r("验证key不存在 get {$testKeyNo} result: {$result}");
+print_r("lastError: ".$redis->lastError()."\n\n");
+
+$result = $redis->keys('*');
+print_r("验证 rename-command keys 后执行的结果 keys '*' result: ".var_export($result, 1)."\n");
+print_r("lastError: ".$redis->lastError()."\n\n");
+
 //重连
+print_r("master 重连\n");
 $redis->reconn();
+
+$result = $redis->set($testKey, $testValue);
+print_r("set {$testKey} {$testValue} ".($result ? "成功" : "失败")."\n");
+print_r("lastError: ".$redis->lastError()."\n\n");
+
+print_r("master 重连测试结束\n");
+print_r("-----------------------------------------------------\n\n");
 
 print("连接到sentinel, 使用实例对象日志\n");
 //$redisSenti = YdRedis::ins('senti');
 $cfgs = parse_ini_file('./redis.conf', true);
 $redisSenti = new YdRedis('senti', $cfgs['senti']);
 $redisSenti->setLogger($loggerSentinel);
-$result = $redisSenti->set('a', 'jwtest'.date('Y-m-d H:i:s'));
-var_dump($result);
-var_dump($redisSenti->get('a'));
+
+$result = $redisSenti->set($testKey, $testValue);
+print_r("set {$testKey} {$testValue} ".($result ? "成功" : "失败")."\n");
+print_r("lastError: ".$redisSenti->lastError()."\n\n");
+
+$result = $redisSenti->get($testKey);
+print_r("get {$testKey} result: {$result}\n");
+print_r("lastError: ".$redisSenti->lastError()."\n\n");
+
 //验证key a0不存在时的处理
-var_dump($redisSenti->get('a0'));
-var_dump("lastError: ".$redisSenti->lastError());
-print("\n\n");
+$result = $redisSenti->get($testKeyNo);
+print_r("验证key不存在 get {$testKeyNo} result: {$result}");
+print_r("lastError: ".$redisSenti->lastError()."\n\n");
+
+$result = $redisSenti->keys('*');
+print_r("验证 rename-command keys 后执行的结果 keys '*' result: ".var_export($result, 1)."\n");
+print_r("lastError: ".$redis->lastError()."\n\n");
+
 //重连
+print_r("sentinel 重连\n");
 $redisSenti->reconn();
-$result = $redisSenti->set('a', 'jwtest'.date('Y-m-d H:i:s'), 600);
-var_dump($result);
-print("sentinel reconn end\n\n");
+
+$result = $redisSenti->set($testKey, $testValue, 600);
+print_r("set {$testKey} {$testValue} ".($result ? "成功" : "失败")."\n");
+print_r("lastError: ".$redisSenti->lastError()."\n\n");
+
+print_r("sentinel 重连测试结束\n");
+print_r("-----------------------------------------------------\n\n");
 
 print("连接到cluster, 使用实例对象日志\n");
 $redisCluster = YdRedis::ins('cluster');
 $redisCluster->setLogger($loggerCluster);
-$result = $redisCluster->set('a', 'jwtest'.date('Y-m-d H:i:s'));
-var_dump($result);
-var_dump($redisCluster->get('a'));
+
+$result = $redisCluster->set($testKey, $testValue);
+print_r("set {$testKey} {$testValue} ".($result ? "成功" : "失败")."\n");
+print_r("lastError: ".$redisCluster->lastError()."\n\n");
+
+$result = $redisCluster->get($testKey);
+print_r("get {$testKey} result: {$result}\n");
+print_r("lastError: ".$redisCluster->lastError()."\n\n");
+
 //验证key a0不存在时的处理
-var_dump($redisCluster->get('a0'));
-var_dump("lastError: ".$redisCluster->lastError());
-print("\n\n");
+$result = $redisCluster->get($testKeyNo);
+print_r("get {$testKey} result: {$result}\n");
+print_r("lastError: ".$redisCluster->lastError()."\n\n");
+
+$result = $redisCluster->keys('*');
+print_r("验证 rename-command keys 后执行的结果 keys '*' result: ".var_export($result, 1)."\n");
+print_r("lastError: ".$redis->lastError()."\n\n");
+
 //重连
+print_r("cluster 重连\n");
 $redisCluster->reconn();
+
+$result = $redisCluster->set($testKey, $testValue);
+print_r("set {$testKey} {$testValue} ".($result ? "成功" : "失败")."\n");
+print_r("lastError: ".$redisCluster->lastError()."\n");
+
+print_r("cluster 重连测试结束\n\n");
+print_r("-----------------------------------------------------\n\n");

@@ -99,6 +99,16 @@ class YdRedis {
         } else {
             $cfg['cmdlog'] =  0;
         }
+        $renameCommand = [];
+        foreach($cfg as $key => $newCommand) {
+            if(substr($key, 0, 15) == 'rename-command-') {
+                $rawCommand = trim(substr($key, 15));
+                if(!$rawCommand || !ctype_alnum($rawCommand)) continue;
+                if(!$newCommand || !ctype_alnum($newCommand)) continue;
+                $renameCommand[strtoupper($rawCommand)] = $newCommand;
+            }
+        }
+        $cfg['rename-command'] = $renameCommand;
         return $cfg;
     }
 
@@ -238,12 +248,17 @@ class YdRedis {
     }
 
     public function __call($name, $params) {
-        $logger = $this->_logger;
+        $logger = $this->_logger ? $this->_logger : self::$logger;
         if($this->_instance == null) {
             $msg = "{$this->_insKey} 未连接到redis！";
             $this->_error($msg);
             $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
             throw new YdRedisException($msg);
+        }
+        $nameUpper = strtoupper($name);
+        if(isset($this->_cfg['rename-command'][$nameUpper])) {
+            array_unshift($params, $this->_cfg['rename-command'][$nameUpper]);
+            $name = 'rawCommand';
         }
         if(method_exists($this->_instance, $name)) {
             try {
