@@ -55,7 +55,7 @@ Add ``yd/ydredis`` as a dependency in your project's ``composer.json`` file (cha
 ;cluster_address = 172.16.100.26:6379, 172.16.100.26:6380
 
 ;; rename-command-#原始命令# 对一些有风险的命令做重命名
-;;rename-command-keys   = 4248baafd0da14d021e9555a0f63b204
+;;rename-command-keys   = b4248aafd0da14d021e9555a0f63b204
 
 
 [default]
@@ -64,7 +64,7 @@ cmdlog   = on
 timeout  = 0
 password = redisadmin
 address  = 127.0.0.1:6379
-rename-command-keys   = 4248baafd0da14d021e9555a0f63b204
+rename-command-keys   = b4248aafd0da14d021e9555a0f63b204
 
 [senti]
 db       = 0
