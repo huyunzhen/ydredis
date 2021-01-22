@@ -139,3 +139,64 @@ print_r("lastError: ".$redisCluster->lastError()."\n");
 
 print_r("cluster 重连测试结束\n\n");
 print_r("-----------------------------------------------------\n\n");
+
+$redis->del("hscan");
+$redisSenti->del("zscan");
+$redisCluster->del("sscan");
+
+$rows = ['a', 'b', 'c', 'd', 'e', 'f'];
+$score = 1;
+foreach($rows as $k0) {
+  foreach($rows as $k1) {
+    foreach($rows as $k2) {
+      $key = "{$k0}{$k1}{$k2}";
+
+      //单节点
+      $redis->set($key, $key);
+      $redis->hset("hscan", $key, $key);
+      $redis->zadd("zscan", $score, $key);
+      $redis->sadd("sscan", $key);
+
+      //主从
+      $redisSenti->set($key, $key);
+      $redisSenti->hset("hscan", $key, $key);
+      $redisSenti->zadd("zscan", $score, $key);
+      $redisSenti->sadd("sscan", $key);
+
+      //集群
+      $redisCluster->set($key, $key);
+      $redisCluster->hset("hscan", $key, $key);
+      $redisCluster->zadd("zscan", $score, $key);
+      $redisCluster->sadd("sscan", $key);
+    }
+  }
+}
+
+print_r("----------------------scan测试开始-------------------------\n\n");
+print_r("redis单节点\n\n");
+$it=null;
+while($keys = $redis->scan($it, 'a*', 10)) var_dump("{$it}".json_encode($keys));
+print_r("redis主从\n\n");
+$it=null;
+while($keys = $redisSenti->scan($it, 'a*', 10)) var_dump("{$it}".json_encode($keys));
+print_r("redis集群\n\n");
+$it=null;
+while($keys = $redisCluster->scan($it, 'a*', 10)) var_dump("{$it}".json_encode($keys));
+print_r("----------------------scan测试结束-------------------------\n\n");
+
+$pagesize = 10;
+foreach(['hscan', 'zscan', 'sscan'] as $key) {
+    print_r("----------------------{$key}测试开始-------------------------\n\n");
+    print_r("redis单节点");
+    $it=null;
+    while($keys = $redis->$key($key, $it, 'a*', $pagesize)) var_dump("{$it}".json_encode($keys));
+    print_r("\n\nredis主从");
+    $it=null;
+    while($keys = $redisSenti->$key($key, $it, 'a*', $pagesize)) var_dump("{$it}".json_encode($keys));
+    print_r("\n\nredis集群");
+    $it=null;
+    while($keys = $redisCluster->$key($key, $it, 'a*', $pagesize)) var_dump("{$it}".json_encode($keys));
+    print_r("----------------------{$key}测试结束-------------------------\n\n");
+}
+
+print_r("-----------------------------------------------------\n\n");

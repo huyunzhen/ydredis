@@ -303,5 +303,143 @@ class YdRedis {
         return $this->_lastError;
     }
 
+    //scan sscan hscan zscan 有参数需要传引用，所以另外单写
+    public function scan(&$cursor, $pattern = null, $count = null, $type = null) {
+        $name = "scan";
+        $params = [$cursor, $pattern, $count, $type];
+        $logger = $this->_logger ? $this->_logger : self::$logger;
+        if($this->_instance == null) {
+            $msg = "{$this->_insKey} 未连接到redis！";
+            $this->_error($msg);
+            $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+            throw new YdRedisException($msg);
+        }
+        try {
+            if($type) {
+                $result = $this->_instance->scan($cursor, $pattern, $count, $type);
+            } else {
+                $result = $this->_instance->scan($cursor, $pattern, $count);
+            }
+            $lastError = $this->_instance->getLastError();
+            $resultMsg = $result === false ? 'fail' : 'ok';
+            $msg = "{$this->_insKey} {$resultMsg} cmd: {$name} params: ".self::jEncode($params)." result: ".self::jEncode($result).($lastError == null ? "" : " Error: {$lastError}");
+            if($this->_cfg['cmdlog'] && $lastError !== null) {
+                $this->_error($msg);
+                $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+            } else if($this->_cfg['cmdlog'] && $lastError === null) {
+                if($logger != null) $logger->info("{$msg}");
+            } else if(!$this->_cfg['cmdlog'] && $lastError !== null) {
+                $this->_error($msg);
+                $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+            } else {
+            }
+            return $result;
+        } catch(\Exception $e) {
+            $msg = "{$this->_insKey} cmd: {$name} params: ".self::jEncode($params)." 执行失败 ".$e->getMessage();
+            $this->_error($msg);
+            $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+            throw new YdRedisException($msg);
+        }
+    }
+    public function sscan($key, &$cursor, $pattern = null, $count = null) {
+        $name = "sscan";
+        $params = [$key, $cursor, $pattern, $count];
+        $logger = $this->_logger ? $this->_logger : self::$logger;
+        if($this->_instance == null) {
+            $msg = "{$this->_insKey} 未连接到redis！";
+            $this->_error($msg);
+            $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+            throw new YdRedisException($msg);
+        }
+        try {
+            $result =  $this->_instance->sscan($key, $cursor, $pattern, $count);
+            $lastError = $this->_instance->getLastError();
+            $resultMsg = $result === false ? 'fail' : 'ok';
+            $msg = "{$this->_insKey} {$resultMsg} cmd: {$name} params: ".self::jEncode($params)." result: ".self::jEncode($result).($lastError == null ? "" : " Error: {$lastError}");
+            if($this->_cfg['cmdlog'] && $lastError !== null) {
+                $this->_error($msg);
+                $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+            } else if($this->_cfg['cmdlog'] && $lastError === null) {
+                if($logger != null) $logger->info("{$msg}");
+            } else if(!$this->_cfg['cmdlog'] && $lastError !== null) {
+                $this->_error($msg);
+                $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+            } else {
+            }
+            return $result;
+        } catch(\Exception $e) {
+            $msg = "{$this->_insKey} cmd: {$name} params: ".self::jEncode($params)." 执行失败 ".$e->getMessage();
+            $this->_error($msg);
+            $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+            throw new YdRedisException($msg);
+        }
+    }
+    public function hscan($key, &$cursor, $pattern = null, $count = null) {
+        $name = "hscan";
+        $params = [$key, $cursor, $pattern, $count];
+        $logger = $this->_logger ? $this->_logger : self::$logger;
+        if($this->_instance == null) {
+            $msg = "{$this->_insKey} 未连接到redis！";
+            $this->_error($msg);
+            $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+            throw new YdRedisException($msg);
+        }
+        try {
+            $result =  $this->_instance->hscan($key, $cursor, $pattern, $count);
+            $lastError = $this->_instance->getLastError();
+            $resultMsg = $result === false ? 'fail' : 'ok';
+            $msg = "{$this->_insKey} {$resultMsg} cmd: {$name} params: ".self::jEncode($params)." result: ".self::jEncode($result).($lastError == null ? "" : " Error: {$lastError}");
+            if($this->_cfg['cmdlog'] && $lastError !== null) {
+                $this->_error($msg);
+                $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+            } else if($this->_cfg['cmdlog'] && $lastError === null) {
+                if($logger != null) $logger->info("{$msg}");
+            } else if(!$this->_cfg['cmdlog'] && $lastError !== null) {
+                $this->_error($msg);
+                $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+            } else {
+            }
+            return $result;
+        } catch(\Exception $e) {
+            $msg = "{$this->_insKey} cmd: {$name} params: ".self::jEncode($params)." 执行失败 ".$e->getMessage();
+            $this->_error($msg);
+            $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+            throw new YdRedisException($msg);
+        }
+    }
+    public function zscan($key, &$cursor, $pattern = null, $count = null) {
+        $name = "zscan";
+        $params = [$key, $cursor, $pattern, $count];
+        $logger = $this->_logger ? $this->_logger : self::$logger;
+        if($this->_instance == null) {
+            $msg = "{$this->_insKey} 未连接到redis！";
+            $this->_error($msg);
+            $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+            throw new YdRedisException($msg);
+        }
+        try {
+            $result =  $this->_instance->zscan($key, $cursor, $pattern, $count);
+            $lastError = $this->_instance->getLastError();
+            $resultMsg = $result === false ? 'fail' : 'ok';
+            $msg = "{$this->_insKey} {$resultMsg} cmd: {$name} params: ".self::jEncode($params)." result: ".self::jEncode($result).($lastError == null ? "" : " Error: {$lastError}");
+            if($this->_cfg['cmdlog'] && $lastError !== null) {
+                $this->_error($msg);
+                $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+            } else if($this->_cfg['cmdlog'] && $lastError === null) {
+                if($logger != null) $logger->info("{$msg}");
+            } else if(!$this->_cfg['cmdlog'] && $lastError !== null) {
+                $this->_error($msg);
+                $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+            } else {
+            }
+            return $result;
+        } catch(\Exception $e) {
+            $msg = "{$this->_insKey} cmd: {$name} params: ".self::jEncode($params)." 执行失败 ".$e->getMessage();
+            $this->_error($msg);
+            $logger == null ? trigger_error("YdRedis {$msg}", E_USER_WARNING) : $logger->error("{$msg}");
+            throw new YdRedisException($msg);
+        }
+    }
+
 }
 
